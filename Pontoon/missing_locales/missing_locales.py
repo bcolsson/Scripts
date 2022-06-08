@@ -53,7 +53,7 @@ def retrieve_github_locales(owner, repo, path):
 
         return locale_list
     except Exception as e:
-        sys.exit(e)
+        sys.exit(f"GitHub error: {e}")
 
 
 def main():
