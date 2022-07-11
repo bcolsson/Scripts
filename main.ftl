@@ -476,3 +476,4 @@ payment-method-header-second-step = 2. { payment-method-header }
 payment-method-required = Required
 
 this_is_a_test = Testy
+another_test = Testy two
