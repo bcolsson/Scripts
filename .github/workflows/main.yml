@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 2  # OR "2" -> To retrieve the preceding commit.
+          fetch-depth: "2"  # OR "2" -> To retrieve the preceding commit.
 
       - name: Get specific changed files
         id: changed-files-specific
@@ -26,6 +26,6 @@ jobs:
 
       - name: List all changed files
         run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          for file in ${{ steps.changed-files-specificgit add.outputs.all_changed_files }}; do
             echo "$file was changed"
           done
