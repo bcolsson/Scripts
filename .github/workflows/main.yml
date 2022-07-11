@@ -15,11 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+          fetch-depth: 2  # OR "2" -> To retrieve the preceding commit.
 
-      - name: Get changed files
-        id: changed-files
+      - name: Get specific changed files
+        id: changed-files-specific
         uses: tj-actions/changed-files@v23.1
+        with:
+          files: |
+            *.ftl
 
       - name: List all changed files
         run: |
