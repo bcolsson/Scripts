@@ -28,9 +28,9 @@ jobs:
 
       - name: List all modified files
         run: |
-          echo "${{ steps.changed-files-specific.outputs.all_modified_files }}"
           for file in ${{ steps.changed-files-specific.outputs.all_modified_files }}; do
-            git show ${{ github.event.pull_request.base.sha }}:$file > old_$file
-            git show $GITHUB_SHA:$file > new_$file
-            python ./.github/scripts/unchanged-ids/fluent.syntax/parse_messages_terms_to_dict.py old_$file new_$file
+            git show ${{ github.event.pull_request.base.sha }}:$file > $file_old
+            git show $GITHUB_SHA:$file > $file_new
+            errorArray+=( "$file_old" "$file_new")
           done
+          python ./.github/scripts/unchanged-ids/fluent.syntax/parse_messages_terms_to_dict.py $errorArray
