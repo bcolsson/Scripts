@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - script-improvement
 
 jobs:
   build:
@@ -27,6 +28,7 @@ jobs:
 
       - name: List all modified files
         run: |
+          echo "${{ steps.changed-files-specific.outputs.all_modified_files }}"
           for file in ${{ steps.changed-files-specific.outputs.all_modified_files }}; do
             git show ${{ github.event.pull_request.base.sha }}:$file > old_$file
             git show $GITHUB_SHA:$file > new_$file
