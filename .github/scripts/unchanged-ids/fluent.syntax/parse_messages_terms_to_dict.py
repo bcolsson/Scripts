@@ -50,7 +50,9 @@ def main():
             output.append(f"\nFile: {file}")
             for id in errors[file]:
                 output.append(
-                    f"\nID: {id[0]}" f"\nBefore: {id[1][0]}" f"\nAfter: {id[1][1]}"
+                    f"\nID: {id[0]}" 
+                    f"\nBefore: {id[1][0]}" 
+                    f"\nAfter: {id[1][1]}"
                 )
                 total_errors += 1
         output.append(f"\nTotal errors: {total_errors}")
