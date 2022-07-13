@@ -35,4 +35,4 @@ jobs:
             errorArray+=( "$file_old" "$file_new" )
             echo "Checking following files: ${errorArray[@]}"
           done
-          python ./.github/scripts/unchanged-ids/fluent.syntax/parse_messages_terms_to_dict.py ${errorArray[@]}"
+          python ./.github/scripts/unchanged-ids/fluent.syntax/parse_messages_terms_to_dict.py ${errorArray[@]}
