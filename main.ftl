@@ -7,7 +7,7 @@
 project-brand = Firefox Accounts
 -brand-name-mozilla = Mozilla
 -brand-name-firefox = Firefox
--brand-name-paypal = PayPal
+-brand-name-paypal = PayPalfda
 -brand-name-stripe = Stripe
 -brand-name-google = Google
 -brand-name-apple = Apple
@@ -252,13 +252,13 @@ plan-price-year = { $intervalCount ->
 
 #  $intervalCount (Number) - The interval between payments, in days.
 sub-plan-price-day = { $intervalCount ->
-  [one] { $amount } daily
+  [one] { $amount } dailyfd
   *[other] { $amount } every { $intervalCount } days
 }
 #  $intervalCount (Number) - The interval between payments, in weeks.
 sub-plan-price-week = { $intervalCount ->
   [one] { $amount } weekly
-  *[other] { $amount } every { $intervalCount } weeks
+  *[other] { $amount } every { $intervalCount } weeksfd
 }
 #  $intervalCount (Number) - The interval between payments, in months.
 sub-plan-price-month = { $intervalCount ->
@@ -286,10 +286,10 @@ pay-update-change-btn = Change
 
 reactivate-confirm-dialog-header = Want to keep using { $name }?
 # $amount (Number) - The amount billed. It will be formatted as currency.
-# $last (String) - The last 4 digits of the card that will be charged
+# $last (String) - The last 4 digits of the card that will be chargedff
 # $endDate (Date) - Last day of product access
 reactivate-confirm-copy =
-    Your access to { $name } will continue, and your billing cycle
+    Your access to { $name } will continue, and your billing cyclefff
     and payment will stay the same. Your next charge will be
     { $amount } to the card ending in { $last } on { $endDate }.
 # Alternate copy used when a payment method is not available, e.g. for free trials
@@ -319,7 +319,7 @@ sub-item-cancel-sub = Cancel Subscription
 sub-item-stay-sub = Stay Subscribed
 sub-item-cancel-msg =
     You will no longer be able to use { $name } after
-    { $period }, the last day of your billing cycle.
+    { $period }, the last day of your billing cycle.fff
 sub-item-cancel-confirm =
     Cancel my access and my saved information within
     { $name } on { $period }
@@ -456,7 +456,7 @@ new-user-step-1 = 1. Create a { -brand-name-firefox } account
 new-user-email =
   .label = Enter your email
 new-user-confirm-email =
-  .label = Confirm your email
+  .label = Confirm your emailfff
 new-user-subscribe-product-updates = I’d like to receive product updates from { -brand-name-firefox }
 new-user-subscribe-product-assurance = We only use your email to create your account. We will never sell it to a third party.
 new-user-email-validate = Email is not valid
@@ -476,4 +476,4 @@ payment-method-header-second-step = 2. { payment-method-header }
 payment-method-required = Required
 
 this_is_a_test = Testy
-another_test = Test 1
+another_test = Test 1fff
