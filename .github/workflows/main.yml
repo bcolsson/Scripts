@@ -29,12 +29,10 @@ jobs:
         run: |
           for file in ${{ steps.changed-files-specific.outputs.all_modified_files }}; do
             file_old=$(printf $file | sed s/.ftl$/old.ftl/)
-            echo $file_old
             file_new=$(printf $file | sed s/.ftl$/new.ftl/)
-            echo $file_new
             git show ${{ github.event.pull_request.base.sha }}:$file > $file_old
             git show $GITHUB_SHA:$file > $file_new
-            errorArray+=( "$file_old" "$file_new")
+            errorArray+=( "$file_old" "$file_new" )
             echo "Checking following files: $errorArray"
           done
           python ./.github/scripts/unchanged-ids/fluent.syntax/parse_messages_terms_to_dict.py $errorArray
