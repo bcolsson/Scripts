@@ -10,7 +10,7 @@ def generate_dict_from_file(file):
         with open(file) as f:
             resource = parse(f.read())
             return {entry.id.name: serializer.serialize_entry(entry) for entry in resource.body if isinstance(entry, ast.Message) or isinstance(entry, ast.Term)}
-        except Exception as e:
+    except Exception as e:
             sys.exit(e)
 
 def find_changed_ids(file_old, file_new):
