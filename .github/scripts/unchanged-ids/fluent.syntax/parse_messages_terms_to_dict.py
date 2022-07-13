@@ -1,5 +1,3 @@
-from collections import defaultdict
-from multiprocessing.reduction import duplicate
 import sys
 from fluent.syntax import parse, ast
 from fluent.syntax.serializer_value import FluentSerializerValue
