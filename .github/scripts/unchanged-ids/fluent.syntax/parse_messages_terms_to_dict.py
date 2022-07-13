@@ -21,11 +21,12 @@ def find_changed_ids(file_old, file_new):
 def main():
     args = iter(sys.argv[1:])
     errors = {}
-
-    for arg in args:
-        changed_ids = find_changed_ids(arg, next(args))
-        for id, value in changed_ids.items():
-            errors[id] = value
+    
+    if args:
+        for arg in args:
+            changed_ids = find_changed_ids(arg, next(args))
+            for id, value in changed_ids.items():
+                errors[id] = value
     
     if errors:
         ids = list(errors.keys())
