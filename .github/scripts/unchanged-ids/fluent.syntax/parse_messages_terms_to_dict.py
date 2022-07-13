@@ -24,33 +24,29 @@ def main():
     
     if args:
         for arg in args:
+            filename = f"{arg[:-7]}.ftl"
             changed_ids = find_changed_ids(arg, next(args))
             for id, value in changed_ids.items():
-                if id in errors:
-                    duplicate_ids.append((id))
-                else:
-                    errors[id] = value
+                errors[filename][id] = value
     
     if errors:
-        ids = list(errors.keys())
-        ids.sort()
+        files = list(errors.keys())
+        files.sort()
 
         output = []
         total_errors = 0
-        for id in ids:
-            print(errors[id])
-            output.append(
-                f"\nID: {id}"
-                f"\nBefore: {errors[id][0]}"
-                f"\nAfter: {errors[id][1]}"
-                )
-            total_errors+= 1
-        output.append(f"\nTotal errors: {total_errors}")
-
-        if duplicate_ids:
-            output.append(f"\nDuplicate IDs found:")
-            for id in duplicate_ids:
-                output.append(f"\nID: {id}")                
+        for file in files:
+            ids = list(file.keys())
+            ids.sort()
+            for id in ids:
+                output.append(
+                    f"\nFile: {file}"
+                    f"\nID: {id}"
+                    f"\nBefore: {errors[id][0]}"
+                    f"\nAfter: {errors[id][1]}"
+                    )
+                total_errors+= 1
+        output.append(f"\nTotal errors: {total_errors}")         
 
         print("\n".join(output))
         sys.exit(1)
