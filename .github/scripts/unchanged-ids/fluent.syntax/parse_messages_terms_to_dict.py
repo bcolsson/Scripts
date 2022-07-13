@@ -1,3 +1,4 @@
+from collections import defaultdict
 import sys
 from fluent.syntax import parse, ast
 from fluent.syntax.serializer_value import FluentSerializerValue
@@ -19,15 +20,14 @@ def find_changed_ids(file_old, file_new):
 
 def main():
     args = iter(sys.argv[1:])
-    errors = {}
-    duplicate_ids = []
+    errors = defaultdict(list)
     
     if args:
         for arg in args:
             filename = f"{arg[:-7]}.ftl"
             changed_ids = find_changed_ids(arg, next(args))
             for id, value in changed_ids.items():
-                errors[filename][id] = value
+                errors[filename].append((id, value))
     
     if errors:
         files = list(errors.keys())
@@ -36,14 +36,12 @@ def main():
         output = []
         total_errors = 0
         for file in files:
-            ids = list(file.keys())
-            ids.sort()
-            for id in ids:
+            output.append(f"\nFile: {file}")
+            for id in errors[file]:
                 output.append(
-                    f"\nFile: {file}"
-                    f"\nID: {id}"
-                    f"\nBefore: {errors[id][0]}"
-                    f"\nAfter: {errors[id][1]}"
+                    f"\nID: {id[0]}"
+                    f"\nBefore: {id[1][0]}"
+                    f"\nAfter: {id[1][1]}"
                     )
                 total_errors+= 1
         output.append(f"\nTotal errors: {total_errors}")         
