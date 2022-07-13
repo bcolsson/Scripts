@@ -23,6 +23,7 @@ jobs:
         with:
           files: |
             *.ftl
+            **/*.ftl
           files_ignore: |
 
       - name: Check for unchanged ID errors
