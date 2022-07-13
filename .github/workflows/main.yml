@@ -1,4 +1,4 @@
-name: CI
+name: Check fluent files for changed strings without new ID
 
 on:
   pull_request:
@@ -26,7 +26,7 @@ jobs:
             **/*.ftl
           files_ignore: |
 
-      - name: Check for unchanged ID errors
+      - name: Check for unchanged IDs
         run: |
           for file in ${{ steps.changed-files-specific.outputs.all_changed_files }}; do
             file_old=$(printf $file | sed s/.ftl$/old.ftl/)
