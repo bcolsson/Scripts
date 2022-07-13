@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - script-improvement
 
 jobs:
   build:
@@ -26,7 +25,7 @@ jobs:
             *.ftl
           files_ignore: |
 
-      - name: List all modified files
+      - name: Check for unchanged ID errors
         run: |
           for file in ${{ steps.changed-files-specific.outputs.all_modified_files }}; do
             file_old=$(printf $file | sed s/.ftl$/old.ftl/)
