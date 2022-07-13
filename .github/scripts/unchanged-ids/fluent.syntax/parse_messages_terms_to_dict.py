@@ -1,4 +1,5 @@
 from collections import defaultdict
+from multiprocessing.reduction import duplicate
 import sys
 from fluent.syntax import parse, ast
 from fluent.syntax.serializer_value import FluentSerializerValue
@@ -21,12 +22,16 @@ def find_changed_ids(file_old, file_new):
 def main():
     args = iter(sys.argv[1:])
     errors = {}
+    duplicate_ids = []
     
     if args:
         for arg in args:
             changed_ids = find_changed_ids(arg, next(args))
             for id, value in changed_ids.items():
-                errors[id] = value
+                if id in errors:
+                    duplicate_ids.append((id))
+                else:
+                    errors[id] = value
     
     if errors:
         ids = list(errors.keys())
@@ -43,6 +48,11 @@ def main():
                 )
             total_errors+= 1
         output.append(f"\nTotal errors: {total_errors}")
+
+        if duplicate_ids:
+            output.append(f"\nDuplicate IDs found:")
+            for id in duplicate_ids:
+                output.append(f"\nID: {id}")                
 
         print("\n".join(output))
         sys.exit(1)
