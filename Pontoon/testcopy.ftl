@@ -1,1 +1,1 @@
-ID = test
+ID = tests
