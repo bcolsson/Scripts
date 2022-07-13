@@ -83,7 +83,6 @@ def serialize_message(message):
         for attribute in message.attributes:
             parts.append(serialize_attribute(attribute))
 
-    parts.append("\n")
     return ''.join(parts)
 
 
@@ -96,7 +95,6 @@ def serialize_term(term):
         for attribute in term.attributes:
             parts.append(serialize_attribute(attribute))
 
-    parts.append("\n")
     return ''.join(parts)
 
 
