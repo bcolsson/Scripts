@@ -28,6 +28,6 @@ jobs:
             git show ${{ github.event.pull_request.base.sha }}:$file > $file_old
             git show $GITHUB_SHA:$file > $file_new
             errorArray+=( "$file_old" "$file_new" )
-            ${errorArray[@]}
+            echo ${errorArray[@]}
           done
           python ./.github/scripts/unchanged-ids/fluent.syntax/parse_messages_terms_to_dict.py ${errorArray[@]}
