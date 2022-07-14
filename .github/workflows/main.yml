@@ -22,15 +22,15 @@ jobs:
         run: |
           diff=$( git diff --name-only ${{ github.event.pull_request.base.sha }} $GITHUB_SHA )
           files+=$( echo $diff | grep '\.ftl$' )
-          for file in $files; do
-            file_old=$(printf $file | sed s/.ftl$/old.ftl/)
-            file_new=$(printf $file | sed s/.ftl$/new.ftl/)
-            git show ${{ github.event.pull_request.base.sha }}:$file > $file_old
-            git show $GITHUB_SHA:$file > $file_new
-            errorArray+=( "$file_old" "$file_new" )
-          done
-          if [ -z ${var+x} ];then
+          if [ -z $files ]; then
             echo "No changed ftl files found.";
           else
+            for file in $files; do
+              file_old=$(printf $file | sed s/.ftl$/old.ftl/)
+              file_new=$(printf $file | sed s/.ftl$/new.ftl/)
+              git show ${{ github.event.pull_request.base.sha }}:$file > $file_old
+              git show $GITHUB_SHA:$file > $file_new
+              errorArray+=( "$file_old" "$file_new" )
+            done
             python ./.github/scripts/unchanged-ids/fluent.syntax/parse_messages_terms_to_dict.py ${errorArray[@]}
           fi
