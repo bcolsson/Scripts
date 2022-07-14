@@ -32,7 +32,7 @@ def find_changed_ids(file_old, file_new):
 def main():
     args = iter(sys.argv[1:])
     errors = defaultdict(list)
-
+    print(args)
     if args:
         for arg in args:
             filename = f"{arg[:-7]}.ftl"
