@@ -36,5 +36,5 @@ jobs:
             echo "creating errorArray"
             errorArray+=( "$file_old" "$file_new" )
           done
-          git "running python script"
+          echo $errorArray
           python ./.github/scripts/unchanged-ids/fluent.syntax/parse_messages_terms_to_dict.py ${errorArray[@]}
