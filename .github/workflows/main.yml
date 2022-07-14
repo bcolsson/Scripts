@@ -20,7 +20,7 @@ jobs:
 
       - name: Check for unchanged IDs
         run: |
-          diff=$( git diff --name-only ${{ github.event.pull_request.base.sha }} $GITHUB_SHA )
+          diff=$( git diff --name-only ${{ github.event.pull_request.base.sha }} $GITHUB_SHA ) || True
           files+=$( echo $diff | grep '\.ftl$' )
           if [ -z $files ]; then
             echo "No changed ftl files found.";
