@@ -24,7 +24,7 @@ jobs:
           diff=$( git diff --name-only ${{ github.event.pull_request.base.sha }} $GITHUB_SHA )
           echo "Post diff"
           echo $diff
-          files+="$( echo $diff | grep '\.ftl$' )
+          files+="$( echo $diff | grep '\.ftl$' )"
           echo "Post grep"
           for file in $files; do
             echo "starting do"
