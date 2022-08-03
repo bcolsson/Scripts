@@ -4,6 +4,7 @@ import requests
 from pathlib import Path
 from xml.etree import ElementTree as et
 
+
 class hashabledict(dict):
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
@@ -96,27 +97,29 @@ def remove_all_ids(etree):
     for termEntry in root.iter("termEntry"):
         termEntry.attrib.pop("id", None)
 
+
 def export_tbx(locale_list):
     root_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
     )
 
-    locale_path = os.path.join(root_path, 'pontoon_exports')
+    locale_path = os.path.join(root_path, "pontoon_exports")
     if not os.path.isdir(locale_path):
         os.mkdir(locale_path)
-    
+
     for locale in locale_list:
         try:
             response = requests.get(
                 f"https://pontoon.mozilla.org/terminology/{locale}.v2.tbx"
             )
-            
+
             with open(os.path.join(locale_path, f"{locale}_pontoon.tbx"), "wb") as f:
                 f.write(response.content)
         except Exception as e:
             print(e)
-    
+
     return list(Path(locale_path).glob("*.tbx"))
+
 
 def main():
     parser = argparse.ArgumentParser()
