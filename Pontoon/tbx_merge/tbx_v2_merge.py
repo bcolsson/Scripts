@@ -1,7 +1,8 @@
+import os
 import argparse
+import requests
 from pathlib import Path
 from xml.etree import ElementTree as et
-
 
 class hashabledict(dict):
     def __hash__(self):
@@ -95,16 +96,36 @@ def remove_all_ids(etree):
     for termEntry in root.iter("termEntry"):
         termEntry.attrib.pop("id", None)
 
+def export_tbx(locale_list):
+    root_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+    )
+
+    locale_path = os.path.join(root_path, 'pontoon_exports')
+    if not os.path.isdir(locale_path):
+        os.mkdir(locale_path)
+    
+    for locale in locale_list:
+        try:
+            response = requests.get(
+                f"https://pontoon.mozilla.org/terminology/{locale}.v2.tbx"
+            )
+            
+            with open(os.path.join(locale_path, f"{locale}_pontoon.tbx"), "wb") as f:
+                f.write(response.content)
+        except Exception as e:
+            print(e)
+    
+    return list(Path(locale_path).glob("*.tbx"))
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--pontoon",
+        "--locales",
         required=True,
-        dest="pontoon_exports",
-        help="Pontoon tbx export directory",
+        dest="locale_list",
+        help="Path to .txt file with each required locale code entered on a new line. The appropriate .tbx file will be exported from Pontoon.",
     )
-    parser.add_argument("--export")
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--smartling",
@@ -123,7 +144,10 @@ def main():
     )
     args = parser.parse_args()
 
-    merge_files = list(Path(args.pontoon_exports).glob("*.tbx"))
+    with open(args.locale_list) as f:
+        locale_list = [locale.strip() for locale in f]
+
+    merge_files = export_tbx(locale_list)
     merged_tree = XMLCombiner(merge_files).combine()
 
     if args.merge_only:
@@ -135,13 +159,13 @@ def main():
         smartling_dict = extract_smartling_id_term(args.smartling_export)
         replace_pontoon_ids(merged_tree, smartling_dict)
         merged_tree.write(
-            "smartling_glossary_existing.tbx", encoding="UTF-8", xml_declaration=True
+            "smartling_merge_glossary.tbx", encoding="UTF-8", xml_declaration=True
         )
 
     if args.new:
         remove_all_ids(merged_tree)
         merged_tree.write(
-            "smartling_glossary_new.tbx", encoding="UTF-8", xml_declaration=True
+            "smartling_new_glossary.tbx", encoding="UTF-8", xml_declaration=True
         )
 
 

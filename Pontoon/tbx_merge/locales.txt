@@ -1,0 +1,5 @@
+ja
+de
+it
+fr
+zh-CN
