@@ -4,6 +4,8 @@ import requests
 from pathlib import Path
 from xml.etree import ElementTree as et
 
+nsmap = {"xml": "http://www.w3.org/XML/1998/namespace"}
+
 
 class hashabledict(dict):
     def __hash__(self):
@@ -52,40 +54,46 @@ class XMLCombiner(object):
 def extract_smartling_id_term(f):
     """ "Creates a dictionary with (term, definition) as key, and the Smartling UID as value."""
     root = et.parse(f).getroot()
-    smartling_dict = {}
+    smartling_map = {}
     for termEntry in root.iter("termEntry"):
         term = termEntry.find(
-            "./langSet[@{http://www.w3.org/XML/1998/namespace}lang='en-US']/tig/term"
+            "./langSet[@xml:lang='en-US']/tig/term",
+            nsmap,
         ).text
         try:
-            definition = termEntry.find("./descrip[@type='definition']").text
+            definition = termEntry.find(
+                "./descrip[@type='definition']",
+                nsmap,
+            ).text
         except AttributeError:
             definition = None
         id = termEntry.attrib["id"]
-        smartling_dict[(term, definition)] = id
+        smartling_map[(term, definition)] = id
 
-    return smartling_dict
+    return smartling_map
 
 
-def replace_pontoon_ids(etree, smartling_dict):
+def replace_pontoon_ids(etree, smartling_map):
     """Replaces Pontoon IDs with Smartling IDs if the term and definition match exactly a term in Smartling glossary file."""
     root = etree.getroot()
     pontoon_term_map = {}
     for termEntry in root.iter("termEntry"):
         term = termEntry.find(
-            "./langSet[@{http://www.w3.org/XML/1998/namespace}lang='en-US']/ntig/termGrp/term"
+            "./langSet[@xml:lang='en-US']/ntig/termGrp/term",
+            nsmap,
         ).text
         try:
             definition = termEntry.find(
-                "./langSet[@{http://www.w3.org/XML/1998/namespace}lang='en-US']/descripGrp/descrip[@type='definition']"
+                "./langSet[@xml:lang='en-US']/descripGrp/descrip[@type='definition']",
+                nsmap,
             ).text
         except AttributeError:
             definition = None
         pontoon_term_map[(term, definition)] = termEntry
 
     for key in pontoon_term_map:
-        if key in smartling_dict:
-            pontoon_term_map[key].attrib["id"] = smartling_dict[key]
+        if key in smartling_map:
+            pontoon_term_map[key].attrib["id"] = smartling_map[key]
         else:
             pontoon_term_map[key].attrib.pop("id", None)
 
@@ -129,23 +137,23 @@ def main():
         dest="locale_list",
         help="Path to .txt file with each required locale code entered on a new line. The appropriate .tbx file will be exported from Pontoon.",
     )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
+    parser.add_argument(
+        "--id-format",
+        required=True,
+        dest="ids",
+        choices=["smartling", "new", "pontoon"],
+        help="Define how to set IDs for termEntry. Select smartling for importing into an existing Smartling glossary, new for creating a new Smartling glossary, or pontoon to preserve Pontoon IDs.",
+    )
+    parser.add_argument(
         "--smartling",
         dest="smartling_export",
-        help="Merges Pontoon terminology for multiple locales and modifies/removes IDs to allow for importing into Smartling. Requires specifying path to Smartling glossary export tbx file.",
-    )
-    group.add_argument(
-        "--merge_only",
-        action="store_true",
-        help="Merges Pontoon terminology for multiple locales without altering IDs.",
-    )
-    group.add_argument(
-        "--new",
-        action="store_true",
-        help="Merges Pontoon terminolgy for multiple locales and removes all IDs. Use this when creating a new glossary in Smartling.",
+        help="Path to glossary tbx file exported from Smartling. Required when using --id-format smartling",
     )
     args = parser.parse_args()
+    if args.ids == "smartling" and not args.smartling_export:
+        parser.error(
+            "Path to Smartling glossary tbx file not defined (--smartling argument required)."
+        )
 
     with open(args.locale_list) as f:
         locale_list = [locale.strip() for locale in f]
@@ -153,19 +161,19 @@ def main():
     merge_files = export_tbx(locale_list)
     merged_tree = XMLCombiner(merge_files).combine()
 
-    if args.merge_only:
+    if args.ids == "pontoon":
         merged_tree.write(
             "pontoon_glossary_multilingual.tbx", encoding="UTF-8", xml_declaration=True
         )
 
-    if args.smartling_export:
-        smartling_dict = extract_smartling_id_term(args.smartling_export)
-        replace_pontoon_ids(merged_tree, smartling_dict)
+    if args.ids == "smartling":
+        smartling_map = extract_smartling_id_term(args.smartling_export)
+        replace_pontoon_ids(merged_tree, smartling_map)
         merged_tree.write(
             "smartling_merge_glossary.tbx", encoding="UTF-8", xml_declaration=True
         )
 
-    if args.new:
+    if args.ids == "new":
         remove_all_ids(merged_tree)
         merged_tree.write(
             "smartling_new_glossary.tbx", encoding="UTF-8", xml_declaration=True
