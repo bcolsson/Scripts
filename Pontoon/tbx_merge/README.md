@@ -37,6 +37,38 @@ Outputs: pontoon_glossary_multilingual.tbx
 --smartling *filepath*  
 (***Required if --id-format smartling argument selected***) Designate the filepath of a .tbx file exported from Smartling.
 
-## Importing into Smartling
+## Importing terminology into Smartling
 
-## Exporting Smartling glossary for merge
+Terminology is managed in within Linguistic Assets section of Account Settings. After logging in select `Account Settings` > `Linguistic Assets`, from there on the left hand menu select `Glossaries`.
+
+From there select a glossary you would like to update, or create a new one, then import terminology by selecting `...` > `Import Glossary`.
+
+### Importing into a new glossary
+
+Use the following steps to import into a new glossary (or a glossary that does not contain any registered terms).
+
+1. Create a locales.txt file with your desired locales separated on newlines, saved to *path*.
+2. Run tbx_merge from the commandline (ensure you have the requests module installed):
+```
+$ python tbx_merge.py --locales path/locales.txt --id-format new
+```
+3. Within Smartling, select the glossary you wish to import terms into and choose `...` > `Import Glossary`.
+4. Choose the file exported by tbx_merge. In this case it will be named: `smartling_new_glossary.tbx`
+5. Smartling will display which languages and the number of terms that will be updated. Click `Import` to finish the import.  
+**Note**: Even the Smartling shows all languages in the import file on import, only terms from languages specified in Current Glossary Languages will actually be imported. You can add more languages to the glossary in Smartling by choosing `...` > `Add Language`.
+
+
+### Updating an existing glossary
+
+The steps are mostly the same, as before, but you will need to first export the target glossary from Smartling as a tbx file.
+
+1. Within Smartling, select the glossary you wish to import terms into and choose `...` > `Export Glossary`. For Download File Type choose `TBX V2 Core` and from the Languages dropdown select `Select displayed results (n)` to choose all target languages in the glossary. Save *glossary* file to *path*.
+2. Create a locales.txt file with your desired locales separated on newlines, saved to *path*.
+3. Run tbx_merge from the commandline (ensure you have the requests module installed):
+```
+$ python tbx_merge.py --locales path/locales.txt --id-format smartling --smartling path/glossary.tbx
+```
+4. Within Smartling, select the glossary you wish to import terms into and choose `...` > `Import Glossary`.
+5. Choose the file exported by tbx_merge. In this case it will be named: `smartling_merge_glossary.tbx`
+6. Smartling will display which languages and the number of terms that will be updated. Click `Import` to finish the import.  
+**Note**: Even the Smartling shows all languages in the import file on import, only terms from languages specified in Current Glossary Languages will actually be imported. You can add more languages to the glossary in Smartling by choosing `...` > `Add Language`.
