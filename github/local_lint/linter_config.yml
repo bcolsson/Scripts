@@ -18,6 +18,10 @@ CO01:
     brands:
         - Firefox
         - Mozilla
+        - PayPal
+        - App Store
+        - Google Play
+        - Firefox account
     exclusions:
         files: []
         messages:
