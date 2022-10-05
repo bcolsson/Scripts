@@ -1,27 +1,30 @@
 #!/bin/bash
+#Requires: moz-fluent-lint and compare_locales
+
+#Import environment variables: 
+#repo_path: path to repo you're checking, e.g. ~/fxa
+#config_path: path to linter_config.yml
+#detect_unchanged_ids: path to detect_unchanged_ids script
+source ./env.txt
 
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -r repo_path -p pull_SHA -c config_path"
-   echo -e "\t-r Path to repository"
+   echo "Usage: $0 -p pull_SHA"
    echo -e "\t-p Pull request SHA)"
-   echo -e "\t-c moz-fluent-lint config path"
    exit 1 # Exit script after printing help
 }
 
-while getopts "r:p:c:" opt
+while getopts "p:" opt
 do
    case "$opt" in
-      r ) repo_path="$OPTARG" ;;
       p ) pull_SHA="$OPTARG" ;;
-      c ) config_path="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
 
 # Print helpFunction in case parameters are empty
-if [ -z "$repo_path" ] || [ -z "$pull_SHA" ] || [ -z "$config_path" ]
+if [ -z "$pull_SHA" ]
 then
    echo "Some or all of the parameters are empty";
    helpFunction
@@ -34,10 +37,16 @@ git merge upstream/main
 
 diff=$( git diff --name-only HEAD $pull_SHA )
 for file in $diff; do
-    mkdir -p "temp_head/${file%/*}/"
+    mkdir -p "temp_base/${file%/*}/" && mkdir -p "temp_head/${file%/*}/"
+    git show HEAD:$file > temp_base/$file
     git show $pull_SHA:$file > temp_head/$file
 done
 
+echo "Linting for brand names"
 moz-fluent-lint temp_head $config_path
 
+echo "Checking for unchanged ids"
+python $detect_unchanged_ids --base_dir temp_base --head_dir temp_head --locale_dir locale/en
+
 rm -rf temp_head
+rm -rf temp_base
