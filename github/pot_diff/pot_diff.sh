@@ -9,14 +9,14 @@ helpFunction()
 {
    echo ""
    echo "Usage: $0 -p pull_SHA"
-   echo -e "\t-p GitHub pull request ID)"
+   echo -e "\t-p GitHub pull request ID (e.g. #12345 at the end of the title))"
    exit 1 # Exit script after printing help
 }
 
 while getopts "p:" opt
 do
    case "$opt" in
-      p ) pull_SHA="$OPTARG" ;;
+      p ) pull_ID="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
