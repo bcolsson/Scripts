@@ -32,6 +32,7 @@ fi
 
 # Begin script in case all parameters are correct
 cd $repo_path
+git checkout main
 git fetch upstream
 git merge upstream/main
 
