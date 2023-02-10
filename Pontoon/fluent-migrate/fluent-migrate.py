@@ -41,11 +41,19 @@ def main():
         dest="target_filename",
         help="Name of target language file",
     )
+    arguments.add_argument(
+        "--merge",
+        action="store_true",
+        dest="merge",
+        help="Merge into an existing file",
+    )
     arguments.add_argument("locales", nargs="*", help="Locales to process")
 
     args = arguments.parse_args()
     if args.target_filename and args.source_filename is None:
-        arguments.error("--target_file requires --source_file.")
+        arguments.error("--target requires --source.")
+    if args.merge and args.target_filename is None:
+        arguments.error("--merge requires --target.")
 
     reference_locale = args.reference_locale
 
@@ -94,15 +102,21 @@ def main():
                     args.source_filename, args.target_filename
                 )
             target_file_path = os.path.join(base_folder, locale, target_filename)
-            output_filename = os.path.join(base_folder, locale, filename)
+            output_file_path = os.path.join(base_folder, locale, filename)
+            if args.merge:
+                with open(output_file_path, "a") as modified_file:
+                    with open(target_file_path) as merged_file:
+                        modified_file.write(merged_file.read())
+                target_file_path = output_file_path
+
             target_parser = getParser(target_file_path)
             target_parser.readFile(target_file_path)
             target = list(target_parser.walk(only_localizable=True))
 
             output = serialize(filename, reference, target, {})
 
-            print(f"Writing {output_filename}")
-            with open(output_filename, "wb") as f:
+            print(f"Writing {output_file_path}")
+            with open(output_file_path, "wb") as f:
                 f.write(output)
 
 
