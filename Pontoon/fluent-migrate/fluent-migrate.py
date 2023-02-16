@@ -16,11 +16,18 @@ def main():
         help="Reference locale code",
     )
     arguments.add_argument(
-        "--ignore",
+        "--ignore-locale",
         nargs="*",
         required=False,
         dest="ignore_locales",
         help="Ignore locales",
+    )
+    arguments.add_argument(
+        "--omit-id",
+        nargs="*",
+        required=False,
+        dest="omit_ids",
+        help="Omit ids",
     )
     arguments.add_argument(
         "--path",
@@ -45,7 +52,7 @@ def main():
         "--merge",
         action="store_true",
         dest="merge",
-        help="Merge into an existing file",
+        help="Merge into an existing file. Note: Uses values from the existing file if there are duplicate IDs ",
     )
     arguments.add_argument("locales", nargs="*", help="Locales to process")
 
@@ -54,7 +61,9 @@ def main():
         arguments.error("--target requires --source.")
     if args.merge and args.target_filename is None:
         arguments.error("--merge requires --target.")
-
+    omit_ids = []
+    if args.omite_ids:
+        omit_ids = [id.lstrip() for id in args.omit_ids]
     reference_locale = args.reference_locale
 
     # Get a list of files to update (absolute paths)
@@ -103,21 +112,29 @@ def main():
                 )
             target_file_path = os.path.join(base_folder, locale, target_filename)
             output_file_path = os.path.join(base_folder, locale, filename)
-            if args.merge:
-                with open(output_file_path, "a") as modified_file:
-                    with open(target_file_path) as merged_file:
-                        modified_file.write(merged_file.read())
-                target_file_path = output_file_path
-
             target_parser = getParser(target_file_path)
             target_parser.readFile(target_file_path)
-            target = list(target_parser.walk(only_localizable=True))
 
-            output = serialize(filename, reference, target, {})
+            output = []
+            target = [ entity for entity in list(target_parser.walk(only_localizable=True)) if f"{entity}" not in omit_ids ]
+            if args.merge:
+                merged_file_parser = getParser(output_file_path)
+                merged_file_parser.readFile(output_file_path)
+                output = [entity for entity in list(merged_file_parser.walk(only_localizable=True)) if f"{entity}" not in omit_ids ]
+                # Read values from existing file, preserves entities from existing file and ignores duplicates in target file.
+                output_strings = [f"{entity}" for entity in output]
+                for target_entity in target:
+                    if f"{target_entity}" in output_strings:
+                        continue
+                    output.append(target_entity)
+            else:
+                output.extend(target)
+            
+            output_data = serialize(filename, reference, output, {})
 
             print(f"Writing {output_file_path}")
             with open(output_file_path, "wb") as f:
-                f.write(output)
+                f.write(output_data)
 
 
 if __name__ == "__main__":
