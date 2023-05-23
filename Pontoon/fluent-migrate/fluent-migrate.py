@@ -3,7 +3,10 @@ import argparse
 import os
 import sys
 from glob import glob
+from compare_locales.keyedtuple import KeyedTuple
 from compare_locales.parser import getParser
+from compare_locales.parser.base import Entity
+from compare_locales.parser.fluent import FluentParser
 from compare_locales.serializer import serialize
 
 
@@ -138,6 +141,24 @@ def main():
             else:
                 output.extend(target)
 
+            #for entity in reference:
+                #if isinstance(entity, Entity) and entity.span[0] != entity.key_span[0]:
+                    #for output_entity in output:
+                        #if f"{output_entity}" == f"{entity}":
+                            #output_entity.ctx.contents = entity.ctx.contents[entity.span[0] : entity.key_span[0]] + output_entity.ctx.contents[output_entity.key_span[0] : output_entity.span[1]]
+                            #output_entity = FluentParser.parse(KeyedTuple([entity.key, content]))
+                            #print(output_entity.all)
+                            
+                    #print(type(entity))
+                    #print(entity.span[0])
+                    #print(entity.key_span[0])
+                    #print(entity.ctx.contents[entity.span[0] : entity.key_span[0]] + entity.ctx.contents[entity.key_span[0] : entity.span[1]])
+                    #if entity.pre_comment and f"{entity}" in output:
+                    #    print(entity.pre_comment)
+                    #    output[f"{entity}"].pre_comment = entity.pre_comment
+
+            #for a in output:
+            #    print(a.all)
             output_data = serialize(filename, reference, output, {})
 
             print(f"Writing {output_file_path}")
