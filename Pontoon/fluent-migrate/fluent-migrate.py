@@ -3,9 +3,65 @@ import argparse
 import os
 import sys
 from glob import glob
-from compare_locales.parser import getParser
+from compare_locales.parser import getParser, FluentParser
+from compare_locales.parser.base import Entity
 from compare_locales.serializer import serialize
 
+def migrate_files(reference, filename, filename_string, base_folder, locale, omit_ids, merge, new_name=False, translations_filename_string=None):    
+    if new_name:
+        translations_filename = filename.replace(
+            filename_string, translations_filename_string
+        )
+    else:
+        translations_filename = filename
+    target_file_path = os.path.join(base_folder, locale, translations_filename)
+    output_file_path = os.path.join(base_folder, locale, filename)
+    target_parser = getParser(target_file_path)
+    target_parser.readFile(target_file_path)
+
+    output = []
+    target = [
+        entity
+        for entity in list(target_parser.walk(only_localizable=True))
+        if f"{entity}" not in omit_ids
+    ]
+    if merge:
+        merged_file_parser = getParser(output_file_path)
+        merged_file_parser.readFile(output_file_path)
+        output = [
+            entity
+            for entity in list(merged_file_parser.walk(only_localizable=True))
+            if f"{entity}" not in omit_ids
+        ]
+        # Read values from existing file, preserves entities from existing file and ignores duplicates in target file.
+        output_strings = [f"{entity}" for entity in output]
+        for target_entity in target:
+            if f"{target_entity}" in output_strings:
+                continue
+            output.append(target_entity)
+    else:
+        output.extend(target)
+
+    source_comments = [entity for entity in reference if isinstance(entity, Entity) and entity.span[0] != entity.key_span[0]]
+    output[:] = [entity for entity in output if entity not in source_comments]
+    append_comments = []
+
+    for entity in source_comments:
+        for output_entity in output:
+            if f"{output_entity}" == f"{entity}":
+                text = entity.ctx.contents[entity.span[0] : entity.key_span[0]] + output_entity.ctx.contents[output_entity.key_span[0] : output_entity.span[1]]
+                parser = FluentParser()
+                parser.readUnicode(text)
+                parsed_list = list(parser.walk())
+                append_comments.append(parsed_list[0])
+    output.extend(append_comments)
+
+    output_data = serialize(filename, reference, output, {})
+
+    with open(output_file_path, "wb") as f:
+        f.write(output_data)
+    
+    return output_file_path
 
 def main():
     arguments = argparse.ArgumentParser()
@@ -44,8 +100,9 @@ def main():
     )
     arguments.add_argument(
         "--translations",
+        nargs="*",
         required=False,
-        dest="translations_filename",
+        dest="translations_filenames",
         help="Alternate source of translations if migrating translations from a different file into the file for --migrate.",
     )
     arguments.add_argument(
@@ -54,12 +111,17 @@ def main():
         dest="merge",
         help="Merge into an existing file. Note: Uses values from the existing file if there are duplicate IDs. ",
     )
-    arguments.add_argument("locales", nargs="*", help="Locales to process")
+    arguments.add_argument(
+        "--locales",
+        nargs="*",
+        required=False,
+        dest="locales",
+        help="Locales to process")
 
     args = arguments.parse_args()
-    if args.translations_filename and args.migrate_filename is None:
+    if args.translations_filenames and args.migrate_filename is None:
         arguments.error("--target requires --source.")
-    if args.merge and args.translations_filename is None:
+    if args.merge and args.translations_filenames is None:
         arguments.error("--merge requires --target.")
     omit_ids = []
     if args.omit_ids:
@@ -94,7 +156,7 @@ def main():
             for locale in args.ignore_locales:
                 locales.remove(locale)
         locales.sort()
-
+    files_written = []
     for filename in reference_files:
         try:
             reference_file_path = os.path.join(base_folder, reference_locale, filename)
@@ -105,44 +167,19 @@ def main():
             sys.exit(f"ERROR: Can't parse reference file {filename}\n{e}")
 
         for locale in locales:
-            translations_filename = filename
-            if args.translations_filename:
-                translations_filename = filename.replace(
-                    args.migrate_filename, args.translations_filename
-                )
-            target_file_path = os.path.join(base_folder, locale, translations_filename)
-            output_file_path = os.path.join(base_folder, locale, filename)
-            target_parser = getParser(target_file_path)
-            target_parser.readFile(target_file_path)
-
-            output = []
-            target = [
-                entity
-                for entity in list(target_parser.walk(only_localizable=True))
-                if f"{entity}" not in omit_ids
-            ]
-            if args.merge:
-                merged_file_parser = getParser(output_file_path)
-                merged_file_parser.readFile(output_file_path)
-                output = [
-                    entity
-                    for entity in list(merged_file_parser.walk(only_localizable=True))
-                    if f"{entity}" not in omit_ids
-                ]
-                # Read values from existing file, preserves entities from existing file and ignores duplicates in target file.
-                output_strings = [f"{entity}" for entity in output]
-                for target_entity in target:
-                    if f"{target_entity}" in output_strings:
-                        continue
-                    output.append(target_entity)
+            if not args.translations_filenames:
+                files_written.append(migrate_files(reference, filename, args.migrate_filename, base_folder, locale, omit_ids, args.merge))
             else:
-                output.extend(target)
-
-            output_data = serialize(filename, reference, output, {})
-
-            print(f"Writing {output_file_path}")
-            with open(output_file_path, "wb") as f:
-                f.write(output_data)
+                for index, translation_filename in enumerate(args.translations_filenames):
+                    if index == 0:
+                        files_written.append(migrate_files(reference, filename, args.migrate_filename, base_folder, locale, omit_ids, args.merge, new_name=True, translations_filename_string=translation_filename))
+                    else:
+                        files_written.append(migrate_files(reference, filename, args.migrate_filename, base_folder, locale, omit_ids, True, new_name=True, translations_filename_string=translation_filename))
+            
+    output_files_written = set(files_written)
+    print("Files written:")
+    for output_file in output_files_written:
+        print(output_file)
 
 
 if __name__ == "__main__":
