@@ -54,6 +54,7 @@ ls $temp_dir
 # Fetch PR branch from github and create temp branch
 git fetch upstream pull/$pull_ID/head:TEMP
 git checkout TEMP
+rm -r locale/templates/LC_MESSAGES/*
 
 # Extract gettext from pull request
 npx grunt l10n-extract
