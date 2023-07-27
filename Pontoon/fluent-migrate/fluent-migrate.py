@@ -7,14 +7,16 @@ from compare_locales.parser import getParser, FluentParser
 from compare_locales.parser.base import Entity
 from compare_locales.serializer import serialize
 
-def migrate_files(reference, filename, filename_string, base_folder, locale, omit_ids, merge, new_name=False, translations_filename_string=None):    
+def migrate_files(reference, filename, filename_string, base_folder, locale, omit_ids, merge, new_name=False, translations_filename_string=None, translations_path=None):    
+    if not translations_path:
+        translations_path = base_folder
     if new_name:
         translations_filename = filename.replace(
             filename_string, translations_filename_string
         )
     else:
         translations_filename = filename
-    target_file_path = os.path.join(base_folder, locale, translations_filename)
+    target_file_path = os.path.join(translations_path, locale, translations_filename)
     output_file_path = os.path.join(base_folder, locale, filename)
     target_parser = getParser(target_file_path)
     target_parser.readFile(target_file_path)
@@ -58,6 +60,7 @@ def migrate_files(reference, filename, filename_string, base_folder, locale, omi
 
     output_data = serialize(filename, reference, output, {})
 
+    os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
     with open(output_file_path, "wb") as f:
         f.write(output_data)
     
@@ -117,6 +120,13 @@ def main():
         required=False,
         dest="locales",
         help="Locales to process")
+    arguments.add_argument(
+        "--translations_path",
+        nargs="?",
+        required="False",
+        dest="translations_path",
+        help="Path to translations is defined"
+    )
 
     args = arguments.parse_args()
     if args.translations_filenames and args.migrate_filename is None:
@@ -152,10 +162,10 @@ def main():
             if os.path.isdir(os.path.join(base_folder, d)) and not d.startswith(".")
         ]
         locales.remove(reference_locale)
-        if args.ignore_locales:
-            for locale in args.ignore_locales:
-                locales.remove(locale)
-        locales.sort()
+    if args.ignore_locales:
+        for locale in args.ignore_locales:
+            locales.remove(locale)
+    locales.sort()
     files_written = []
     for filename in reference_files:
         try:
@@ -172,11 +182,12 @@ def main():
             else:
                 for index, translation_filename in enumerate(args.translations_filenames):
                     if index == 0:
-                        files_written.append(migrate_files(reference, filename, args.migrate_filename, base_folder, locale, omit_ids, args.merge, new_name=True, translations_filename_string=translation_filename))
+                        files_written.append(migrate_files(reference, filename, args.migrate_filename, base_folder, locale, omit_ids, args.merge, new_name=True, translations_filename_string=translation_filename, translations_path=args.translations_path))
                     else:
-                        files_written.append(migrate_files(reference, filename, args.migrate_filename, base_folder, locale, omit_ids, True, new_name=True, translations_filename_string=translation_filename))
+                        files_written.append(migrate_files(reference, filename, args.migrate_filename, base_folder, locale, omit_ids, True, new_name=True, translations_filename_string=translation_filename, translations_path=args.translations_path))
             
-    output_files_written = set(files_written)
+    output_files_written = list(set(files_written))
+    output_files_written.sort()
     print("Files written:")
     for output_file in output_files_written:
         print(output_file)
